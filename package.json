@@ -1,6 +1,7 @@
 {
   "name": "jsast",
   "version": "1.0.0",
+  "type": "module",
   "dependencies": {
     "@babel/parser": "^7.21.0",
     "@babel/traverse": "^7.21.0",

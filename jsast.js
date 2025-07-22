@@ -1,14 +1,14 @@
-const babelTypes = require('@babel/types');
-const babelParser = require('@babel/parser');
-const babelTraverse = require('@babel/traverse').default;
-const babelGenerator = require('@babel/generator').default;
+import fs from 'fs';
+import path from 'path';
+import { parseArgs } from 'node:util';
 
-const fs = require('fs');
-const path = require('path');
-const { parseArgs } = require('util');
+import { createRequire } from "module";
+const require = createRequire(import.meta.url);
+const deobfuscation = require('./deobfuscation/general');
 
 const DEFAULT_FILE_ENCODING = 'utf8';
 const DEFAULT_OUTPUT_FILE = '/dev/stdout';
+const DEFAULT_AST_PARAMETER = true;
 
 function showHelp() {
     console.log(`Usage: ${path.basename(process.argv[1])} [OPTIONS]
@@ -21,19 +21,12 @@ OPTIONS:
 \t[-e|--encoding]\t\tSets encoding of input/output file content (default='${DEFAULT_FILE_ENCODING}').
 \t[-o|--output]\t\tSets output file (default='${DEFAULT_OUTPUT_FILE}').
 \t[-s|--script]\t\tInput script file to process.
+\t[-a|--ast]\t\tOutput only AST, without deobfuscation. (default=${DEFAULT_AST_PARAMETER})
+\t[-x|--unhex]\t\tDecodes hexlified/unicode-encoded strings.
+\t[-d|--deref]\t\tDereferences array values and constants, substitutes as constants.
+\t[-c|--concat]\t\tConcatenates strings to one.
+\t[-D|--decrypt]\t\tDecrypt strings.
 `);
-}
-function astGenerate(script, output) {
-    let ast = null;
-    try {
-        ast = babelParser.parse(script, {
-            sourceType: 'module',
-            plugins: ['jsx']
-        });
-        fs.writeFileSync(output, JSON.stringify(ast));
-    } catch (error) {
-        console.error('Error: Unable to parse the script\'s AST.');
-    }
 }
 
 function main() {
@@ -70,6 +63,31 @@ function main() {
                 type: 'string',
                 short: 's',
                 default: ''
+            },
+            'ast': {
+                type: 'boolean',
+                short: 'a',
+                default: DEFAULT_AST_PARAMETER
+            },
+            'unhex': {
+                type: 'boolean',
+                short: 'x',
+                default: false
+            },
+            'deref': {
+                type: 'boolean',
+                short: 'd',
+                default: false
+            },
+            'concat': {
+                type: 'boolean',
+                short: 'c',
+                default: false
+            },
+            'decrypt': {
+                type: 'boolean',
+                short: 'D',
+                default: false
             }
         }
     }
@@ -77,7 +95,7 @@ function main() {
     try {
         parser = parseArgs(options);
     } catch (error) {
-        conseole.error('Error: Unable to parse command line arguments.');
+        console.error('Error: Unable to parse command line arguments.');
         process.exit(1);
     }
     const args = parser.values;
@@ -93,8 +111,8 @@ function main() {
     }
 
     // Read script
+    let scriptContent = '';
     try {
-        let scriptContent = '';
         if (args.stdin) {
             scriptContent = fs.readFileSync(process.stdin.fd, args.encoding);
         } else if (args.script) {
@@ -105,10 +123,15 @@ function main() {
         process.exit(1);
     }
 
-
-    astGenerate(scriptContent, args.output);
+    var ast = deobfuscation.astGenerate(scriptContent, args.output);
+    if (args.ast) {
+        try {
+            fs.writeFileSync(args.output, JSON.stringify(ast));
+        } catch (error) {
+            console.error('Error: Unable to write file.');
+        }
+        process.exit(0);
+    }
 }
 
-if (require.main === module) {
-    main();
-}
+main();
