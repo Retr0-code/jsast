@@ -1,7 +1,7 @@
-const { babelTypes } = require('@babel/types');
-const { babelParser } = require('@babel/parser');
-const { babelTraverse } = require('@babel/traverse').default;
-const { babelGenerator } = require('@babel/generator').default;
+const babelTypes = require('@babel/types');
+const babelParser = require('@babel/parser');
+const babelTraverse = require('@babel/traverse').default;
+const babelGenerator = require('@babel/generator').default;
 
 const fs = require('fs');
 const path = require('path');
@@ -23,12 +23,20 @@ OPTIONS:
 \t[-s|--script]\t\tInput script file to process.
 `);
 }
-
-function readFileStdin() {
-
+function astGenerate(script, output) {
+    let ast = null;
+    try {
+        ast = babelParser.parse(script, {
+            sourceType: 'module',
+            plugins: ['jsx']
+        });
+        fs.writeFileSync(output, JSON.stringify(ast));
+    } catch (error) {
+        console.error('Error: Unable to parse the script\'s AST.');
+    }
 }
 
-function main(){
+function main() {
     const options = {
         args: process.argv.slice(2),
         strict: true,
@@ -57,6 +65,7 @@ function main(){
                 short: 'o',
                 default: DEFAULT_OUTPUT_FILE
             },
+            // Input script file
             'script': {
                 type: 'string',
                 short: 's',
@@ -64,7 +73,13 @@ function main(){
             }
         }
     }
-    const parser = parseArgs(options);
+    let parser = null;
+    try {
+        parser = parseArgs(options);
+    } catch (error) {
+        conseole.error('Error: Unable to parse command line arguments.');
+        process.exit(1);
+    }
     const args = parser.values;
 
     if (args.help) {
@@ -73,21 +88,25 @@ function main(){
     }
 
     if (!(args.stdin ^ Boolean(args.script))) {
-        console.error("Error: No script file supplied (or both stdin and script options are used simultaneously).\n");
+        console.error('Error: No script file supplied (or both stdin and script options are used simultaneously).\n');
         process.exit(1);
     }
 
     // Read script
-    let scriptContent = '';
-    if (args.stdin) {
-        scriptContent = readFileStdin();
-    } else if (args.script) {
-        scriptContent = fs.readFileSync(args.script, args.encoding);
-    } else {
-        console.error("Error: Unable to read file content.");
+    try {
+        let scriptContent = '';
+        if (args.stdin) {
+            scriptContent = fs.readFileSync(process.stdin.fd, args.encoding);
+        } else if (args.script) {
+            scriptContent = fs.readFileSync(args.script, args.encoding);
+        }
+    } catch (error) {
+        console.error('Error: Unable to read file content.');
         process.exit(1);
     }
-    console.log(scriptContent);
+
+
+    astGenerate(scriptContent, args.output);
 }
 
 if (require.main === module) {
