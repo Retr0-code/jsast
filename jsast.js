@@ -3,6 +3,7 @@ import path from 'path';
 import { parseArgs } from 'node:util';
 import { astGenerate, astCompile, deobfuscationMethods } from './deobfuscation/general.js';
 
+
 const DEFAULT_FILE_ENCODING = 'utf8';
 const DEFAULT_OUTPUT_FILE = '/dev/stdout';
 const DEFAULT_AST_PARAMETER = false;
@@ -120,6 +121,7 @@ function main() {
         process.exit(1);
     }
 
+    // Generate AST and save it unchanged if required
     var ast = astGenerate(scriptContent);
     if (args.ast) {
         try {
@@ -131,9 +133,10 @@ function main() {
         process.exit(0);
     }
 
+    // Pass multiple deobfuscation methods
     for (const method in deobfuscationMethods) {
         if (Object.hasOwn(args, method)) {
-            ast = deobfuscationMethods[method](ast)
+            deobfuscationMethods[method](ast);
         }
     }
 

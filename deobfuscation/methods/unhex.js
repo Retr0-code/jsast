@@ -1,9 +1,11 @@
-import babelTypes from '@babel/types';
-import babelParser from '@babel/parser';
 import babelTraverse from '@babel/traverse';
-import babelGenerator from '@babel/generator';
+const traverse = babelTraverse.default || babelTraverse;
 
 export function unhexStrings(ast) {
-
-    return ast;
+    traverse(ast, {
+        StringLiteral(path) {
+            if (path.node.extra)
+                delete path.node.extra;
+        }
+    });
 }

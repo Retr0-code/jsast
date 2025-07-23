@@ -1,6 +1,4 @@
-import babelTypes from '@babel/types';
 import babelParser from '@babel/parser';
-import babelTraverse from '@babel/traverse';
 import babelGenerator from '@babel/generator';
 
 import { createRequire } from "module";
@@ -9,6 +7,7 @@ const methods = require("./methods")
 
 export const deobfuscationMethods = {
     unhex: methods.unhex,
+    concat: methods.concat,
     deref: methods.deref
 };
 
@@ -31,6 +30,7 @@ export function astCompile(ast) {
         return babelGenerator.generate(ast, { comments: false }).code;
     } catch (error) {
         console.error('Error: Unable to generate JS code from the AST.');
+        console.error(error.message);
         return '';
     }
 }
