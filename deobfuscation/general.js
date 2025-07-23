@@ -1,21 +1,18 @@
-// const babelTypes = require('@babel/types');
+import babelTypes from '@babel/types';
 import babelParser from '@babel/parser';
-// const babelTraverse = require('@babel/traverse').default;
-// const babelGenerator = require('@babel/generator').default;
+import babelTraverse from '@babel/traverse';
+import babelGenerator from '@babel/generator';
 
-/** Constructor for DeobfuscationMethod objects
- * 
- * @param name corresponds to name of the command-line argument.
- * @param ast AST object that will pass deobfuscation.
- * @param deobfuscate reference to deobfuscation function that MUST to return AST. 
- */
-export function DeobfuscationMethod(name, ast, deobfuscate) {
-    this.name = name;
-    this.ast = ast;
-    this.deobfuscate = deobfuscate;
-}
+import { createRequire } from "module";
+const require = createRequire(import.meta.url);
+const methods = require("./methods")
 
-export function astGenerate(script, output) {
+export const deobfuscationMethods = {
+    unhex: methods.unhex,
+    deref: methods.deref
+};
+
+export function astGenerate(script) {
     let ast = null;
     try {
         ast = babelParser.parse(script, {
@@ -29,3 +26,11 @@ export function astGenerate(script, output) {
     }
 }
 
+export function astCompile(ast) {
+    try {
+        return babelGenerator.generate(ast, { comments: false }).code;
+    } catch (error) {
+        console.error('Error: Unable to generate JS code from the AST.');
+        return '';
+    }
+}

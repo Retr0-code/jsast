@@ -1,14 +1,11 @@
 import fs from 'fs';
 import path from 'path';
 import { parseArgs } from 'node:util';
-
-import { createRequire } from "module";
-const require = createRequire(import.meta.url);
-const deobfuscation = require('./deobfuscation/general');
+import { astGenerate, astCompile, deobfuscationMethods } from './deobfuscation/general.js';
 
 const DEFAULT_FILE_ENCODING = 'utf8';
 const DEFAULT_OUTPUT_FILE = '/dev/stdout';
-const DEFAULT_AST_PARAMETER = true;
+const DEFAULT_AST_PARAMETER = false;
 
 function showHelp() {
     console.log(`Usage: ${path.basename(process.argv[1])} [OPTIONS]
@@ -123,14 +120,32 @@ function main() {
         process.exit(1);
     }
 
-    var ast = deobfuscation.astGenerate(scriptContent, args.output);
+    var ast = astGenerate(scriptContent);
     if (args.ast) {
         try {
             fs.writeFileSync(args.output, JSON.stringify(ast));
         } catch (error) {
             console.error('Error: Unable to write file.');
+            process.exit(1);
         }
         process.exit(0);
+    }
+
+    for (const method in deobfuscationMethods) {
+        if (Object.hasOwn(args, method)) {
+            ast = deobfuscationMethods[method](ast)
+        }
+    }
+
+    try {
+        let sourceCode = astCompile(ast);
+        if (sourceCode != '')
+            fs.writeFileSync(args.output, sourceCode);
+        else
+            process.exit(1);
+    } catch (error) {
+        console.error('Error: Unable to write file.');
+        process.exit(1);
     }
 }
 
