@@ -11,7 +11,7 @@ Automation for JS **A**bstract **S**yntax **T**ree generation using [@babel](htt
 
  - [x] Strings decoding from hex or unicode.
  - [x] Array to constants dereferencing.
- - [ ] Constants to value dereferencing.
+ - [x] Constants to value dereferencing.
  - [x] Strings concatination.
  - [ ] Strings decryption.
  - [ ] Constant folding.
