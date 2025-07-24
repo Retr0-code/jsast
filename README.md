@@ -16,4 +16,4 @@ Automation for JS **A**bstract **S**yntax **T**ree generation using [@babel](htt
  - [ ] Strings decryption.
  - [ ] Constant folding.
  - [ ] Converting object notation `[] => .` from square brackets to dots.
- - [ ] Removing dead/unreachable code.
+ - [x] Removing dead/unreachable code.

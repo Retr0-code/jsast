@@ -11,8 +11,10 @@
 import fs from 'fs';
 import path from 'path';
 import { parseArgs } from 'node:util';
-import { astGenerate, astCompile, deobfuscationMethods } from './deobfuscation/general.js';
-
+import { createRequire } from "module";
+import { astGenerate, astCompile } from './deobfuscation/general.js';
+const require = createRequire(import.meta.url);
+const methods = require("./deobfuscation/methods")
 
 const DEFAULT_FILE_ENCODING = 'utf8';
 const DEFAULT_OUTPUT_FILE = '/dev/stdout';
@@ -34,6 +36,7 @@ OPTIONS:
 \t[-d|--deref]\t\tDereferences array values and constants, substitutes as constants.
 \t[-c|--concat]\t\tConcatenates strings to one.
 \t[-D|--decrypt]\t\tDecrypt strings.
+\t[-C|--cleanup]\t\tRemoves unused code.
 `);
 }
 
@@ -96,6 +99,11 @@ function main() {
                 type: 'boolean',
                 short: 'D',
                 default: false
+            },
+            'cleanup': {
+                type: 'boolean',
+                short: 'C',
+                default: false
             }
         }
     }
@@ -144,9 +152,9 @@ function main() {
     }
 
     // Pass multiple deobfuscation methods
-    for (const method in deobfuscationMethods) {
+    for (const method in methods) {
         if (Object.hasOwn(args, method)) {
-            deobfuscationMethods[method](ast);
+            methods[method](ast);
         }
     }
 

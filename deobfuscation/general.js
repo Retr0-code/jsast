@@ -11,16 +11,6 @@
 import babelParser from '@babel/parser';
 import babelGenerator from '@babel/generator';
 
-import { createRequire } from "module";
-const require = createRequire(import.meta.url);
-const methods = require("./methods")
-
-export const deobfuscationMethods = {
-    unhex: methods.unhex,
-    concat: methods.concat,
-    deref: methods.deref
-};
-
 export function astGenerate(script) {
     let ast = null;
     try {

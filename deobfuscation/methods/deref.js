@@ -29,7 +29,6 @@ function derefArrays(path, declaration) {
 
     const { constant, referencePaths } = binding;
 
-    // This wouldn't be safe if the array was not constant.
     if (!constant)
         return;
 
